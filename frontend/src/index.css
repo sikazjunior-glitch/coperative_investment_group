@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .bg-primary-deep-navy { background-color: rgb(22, 45, 78); }
+  .text-primary-deep-navy { color: rgb(22, 45, 78); }
+  .border-primary-deep-navy { border-color: rgb(22, 45, 78); }
+
+  .bg-accent-teal { background-color: rgb(20, 196, 187); }
+  .text-accent-teal { color: rgb(20, 196, 187); }
+  .border-accent-teal { border-color: rgb(20, 196, 187); }
+
+  .bg-gold-highlight { background-color: rgb(212, 175, 55); }
+  .text-gold-highlight { color: rgb(212, 175, 55); }
+  .border-gold-highlight { border-color: rgb(212, 175, 55); }
+
+  .bg-light-cream { background-color: rgb(245, 245, 240); }
+  .text-light-cream { color: rgb(245, 245, 240); }
+  .border-light-cream { border-color: rgb(245, 245, 240); }
+
+  .text-shadow-teal-glow { text-shadow: 0 0 10px rgb(20, 196, 187); }
+}
