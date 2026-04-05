@@ -1,24 +1,12 @@
 from django.contrib import admin
-from django.contrib.auth import get_user_model
-from .models import ClubSettings, Project, Transaction
+from django.contrib.auth.admin import UserAdmin
+from .models import User
 
-# Force Django to grab the exact active user model from the settings
-User = get_user_model()
+# This tells Django to use the secure password-hashing screens for our custom user
+class CustomUserAdmin(UserAdmin):
+    # This adds your custom 'is_approved_member' checkbox to the admin panel
+    fieldsets = UserAdmin.fieldsets + (
+        ('CIG Hub Permissions', {'fields': ('is_approved_member',)}),
+    )
 
-class CustomUserAdmin(admin.ModelAdmin):
-    list_display = ['username', 'first_name', 'last_name', 'email', 'is_approved_member', 'is_staff']
-    list_editable = ['is_approved_member']
-    list_filter = ['is_approved_member', 'is_staff']
-    search_fields = ['username', 'email']
-
-# Unregister it just in case Django tangled it up in the background
-try:
-    admin.site.unregister(User)
-except admin.sites.NotRegistered:
-    pass
-
-# Register it forcefully
 admin.site.register(User, CustomUserAdmin)
-admin.site.register(ClubSettings)
-admin.site.register(Project)
-admin.site.register(Transaction)
