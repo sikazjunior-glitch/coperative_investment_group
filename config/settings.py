@@ -121,13 +121,11 @@ SIMPLE_JWT = {
 
 
 # --- 8. CORS SETTINGS ---
-# Accept requests from local React dev AND your future Vercel URL
+# Accept requests from local React dev AND your live Vercel URL
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
+    "https://coperative-investment-group.vercel.app",
 ]
-
-# When you get your Vercel URL, add it like this:
-# CORS_ALLOWED_ORIGINS += ["https://your-app-name.vercel.app"]
 
 # Allow all headers for JWT to work properly
 CORS_ALLOW_ALL_ORIGINS = False
