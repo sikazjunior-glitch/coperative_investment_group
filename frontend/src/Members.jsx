@@ -52,9 +52,9 @@ function Members() {
     setIsLoadingFetch(true)
     try {
       const [userRes, allUsersRes, transRes] = await Promise.all([
-        axios.get('http://127.0.0.1:8000/api/user/', { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get('http://127.0.0.1:8000/api/users/', { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get('http://127.0.0.1:8000/api/transactions/', { headers: { Authorization: `Bearer ${token}` } })
+        axios.get('https://cig-backend-62lz.onrender.com/api/user/', { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get('https://cig-backend-62lz.onrender.com/api/users/', { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get('https://cig-backend-62lz.onrender.com/api/transactions/', { headers: { Authorization: `Bearer ${token}` } })
       ])
       
       setIsAdmin(userRes.data.is_admin)
@@ -89,7 +89,7 @@ function Members() {
     const token = localStorage.getItem('access_token')
     setIsLoadingAction(id);
     try {
-      await axios.post(`http://127.0.0.1:8000/api/users/${id}/approve/`, {}, { headers: { Authorization: `Bearer ${token}` } })
+      await axios.post(`https://cig-backend-62lz.onrender.com/api/users/${id}/approve/`, {}, { headers: { Authorization: `Bearer ${token}` } })
       showToast('✅ Member access granted successfully.')
       fetchData(token) 
     } catch (err) {

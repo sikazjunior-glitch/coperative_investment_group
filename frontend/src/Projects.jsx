@@ -23,13 +23,13 @@ function Projects() {
   const fetchData = async (token) => {
     setIsLoadingFetch(true)
     try {
-      const userRes = await axios.get('http://127.0.0.1:8000/api/user/', { headers: { Authorization: `Bearer ${token}` } })
+      const userRes = await axios.get('https://cig-backend-62lz.onrender.com/api/user/', { headers: { Authorization: `Bearer ${token}` } })
       setIsAdmin(userRes.data.is_admin)
 
-      const projRes = await axios.get('http://127.0.0.1:8000/api/projects/', { headers: { Authorization: `Bearer ${token}` } })
+      const projRes = await axios.get('https://cig-backend-62lz.onrender.com/api/projects/', { headers: { Authorization: `Bearer ${token}` } })
       setProjects(projRes.data)
 
-      const transRes = await axios.get('http://127.0.0.1:8000/api/transactions/', { headers: { Authorization: `Bearer ${token}` } })
+      const transRes = await axios.get('https://cig-backend-62lz.onrender.com/api/transactions/', { headers: { Authorization: `Bearer ${token}` } })
       setTransactions(transRes.data)
     } catch (err) {
       console.error("Connectivity Lost.")
@@ -75,7 +75,7 @@ function Projects() {
     }
 
     try {
-      const response = await axios.post(`http://127.0.0.1:8000/api/projects/${projectId}/fund/`, 
+      const response = await axios.post(`https://cig-backend-62lz.onrender.com/api/projects/${projectId}/fund/`, 
         { amount: amount },
         { headers: { Authorization: `Bearer ${token}` } }
       )
@@ -103,7 +103,7 @@ function Projects() {
     }
 
     try {
-      const response = await axios.post(`http://127.0.0.1:8000/api/projects/${projectId}/defund/`, 
+      const response = await axios.post(`https://cig-backend-62lz.onrender.com/api/projects/${projectId}/defund/`, 
         { amount: amount },
         { headers: { Authorization: `Bearer ${token}` } }
       )

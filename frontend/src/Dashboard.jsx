@@ -63,15 +63,15 @@ function Dashboard() {
     setIsLoadingFetch(true)
     setError('')
     try {
-      const userRes = await axios.get('http://127.0.0.1:8000/api/user/', { headers: { Authorization: `Bearer ${token}` } })
+      const userRes = await axios.get('https://cig-backend-62lz.onrender.com/api/user/', { headers: { Authorization: `Bearer ${token}` } })
       const { username, first_name, is_admin } = userRes.data
       setUserDisplayName(first_name || username) 
       setIsAdmin(is_admin) 
 
       const [projRes, transRes, usersRes] = await Promise.all([
-         axios.get('http://127.0.0.1:8000/api/projects/', { headers: { Authorization: `Bearer ${token}` } }),
-         axios.get('http://127.0.0.1:8000/api/transactions/', { headers: { Authorization: `Bearer ${token}` } }),
-         axios.get('http://127.0.0.1:8000/api/users/', { headers: { Authorization: `Bearer ${token}` } })
+         axios.get('https://cig-backend-62lz.onrender.com/api/projects/', { headers: { Authorization: `Bearer ${token}` } }),
+         axios.get('https://cig-backend-62lz.onrender.com/api/transactions/', { headers: { Authorization: `Bearer ${token}` } }),
+         axios.get('https://cig-backend-62lz.onrender.com/api/users/', { headers: { Authorization: `Bearer ${token}` } })
       ])
       
       setProjects(projRes.data)
@@ -128,7 +128,7 @@ function Dashboard() {
     const payload = tradeMode === 'TRANSFER' ? { shares: amountInt, recipient_id: tradeRecipient } : { shares: amountInt };
 
     try {
-      await axios.post(`http://127.0.0.1:8000/api/transactions/${endpoint}/`, payload, { headers: { Authorization: `Bearer ${token}` } })
+      await axios.post(`https://cig-backend-62lz.onrender.com/api/transactions/${endpoint}/`, payload, { headers: { Authorization: `Bearer ${token}` } })
       showToast(`✅ Request submitted to Admin for verification.`)
       setTradeAmount(1)
       fetchData(token) 
@@ -144,9 +144,9 @@ function Dashboard() {
     const token = localStorage.getItem('access_token')
     setIsLoadingAdminAction(id);
     try {
-      if (type === 'VOID') await axios.delete(`http://127.0.0.1:8000/api/transactions/${id}/`, { headers: { Authorization: `Bearer ${token}` } })
-      else if (type === 'APPROVE') await axios.post(`http://127.0.0.1:8000/api/transactions/${id}/approve/`, {}, { headers: { Authorization: `Bearer ${token}` } })
-      else if (type === 'DECLINE') await axios.post(`http://127.0.0.1:8000/api/transactions/${id}/decline/`, {}, { headers: { Authorization: `Bearer ${token}` } })
+      if (type === 'VOID') await axios.delete(`https://cig-backend-62lz.onrender.com/api/transactions/${id}/`, { headers: { Authorization: `Bearer ${token}` } })
+      else if (type === 'APPROVE') await axios.post(`https://cig-backend-62lz.onrender.com/api/transactions/${id}/approve/`, {}, { headers: { Authorization: `Bearer ${token}` } })
+      else if (type === 'DECLINE') await axios.post(`https://cig-backend-62lz.onrender.com/api/transactions/${id}/decline/`, {}, { headers: { Authorization: `Bearer ${token}` } })
       
       showToast('✅ Ledger successfully updated.')
       fetchData(token) 
