@@ -182,61 +182,75 @@ function Dashboard() {
     return total
   }, 0)
 
- const myPortfolioValue = myTotalShares * 10000 
+  const myPortfolioValue = myTotalShares * 10000 
 
-  // --- NEW: PDF GENERATOR FUNCTION ---
-  const generatePDFStatement = () => {
+  // --- UPGRADED PDF GENERATOR FUNCTION ---
+  const generatePDFStatement = (isMaster = false) => {
     const doc = new jsPDF();
+    const isClubMaster = isMaster && isAdmin;
 
     // 1. Header Styling
-    doc.setFontSize(22);
+    doc.setFontSize(20);
     doc.setTextColor(15, 23, 42); // Primary Deep Navy
-    doc.text("CIG HUB - OFFICIAL ACCOUNT STATEMENT", 14, 22);
+    doc.text(isClubMaster ? "CIG HUB - MASTER CLUB LEDGER" : "CIG HUB - OFFICIAL ACCOUNT STATEMENT", 14, 22);
 
     doc.setFontSize(10);
     doc.setTextColor(100);
-    doc.text(`Member Account: ${userDisplayName} (ID: #${userId})`, 14, 32);
+    doc.text(isClubMaster ? `Administrator: ${userDisplayName}` : `Member Account: ${userDisplayName} (ID: #${userId})`, 14, 32);
     doc.text(`Document Generated: ${new Date().toLocaleString()}`, 14, 38);
     
     // 2. Summary Block
     doc.setFontSize(12);
     doc.setTextColor(15, 23, 42);
-    doc.text(`Total Verified Equity: K${myPortfolioValue.toLocaleString()}`, 14, 50);
-    doc.text(`Total Shares Owned: ${myTotalShares} Shares`, 14, 56);
+    if (isClubMaster) {
+        doc.text(`Total Club Capital: K${(totalClubShares * 10000).toLocaleString()}`, 14, 50);
+        doc.text(`Total Active Shares: ${totalClubShares} / 100 Shares`, 14, 56);
+    } else {
+        doc.text(`Total Verified Equity: K${myPortfolioValue.toLocaleString()}`, 14, 50);
+        doc.text(`Total Shares Owned: ${myTotalShares} Shares`, 14, 56);
+    }
 
-    // 3. Prepare Table Data (Sorted newest first)
-    const tableColumn = ["Date", "Time", "Transaction Type", "Parties Involved", "Shares", "Value (K)"];
+    // 3. Prepare Table Data (Include Status Column)
+    const tableColumn = ["Date", "Type", "Parties Involved", "Shares", "Value (K)", "Status"];
     const tableRows = [];
 
-    const sortedTx = [...myApprovedTransactions].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    // If Master, pull EVERY transaction. If normal, pull User's (Approved + Pending)
+    const txListToPrint = isClubMaster 
+        ? transactions 
+        : [...myApprovedTransactions, ...myPendingTransactions];
+
+    const sortedTx = [...txListToPrint].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
     sortedTx.forEach(t => {
         const txDate = new Date(t.timestamp).toLocaleDateString();
-        const txTime = new Date(t.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
         let type = "";
         let details = "";
         let shareStr = "";
 
         if (t.transaction_type === 'BUY_SHARE') {
-            type = "BUY"; details = "Purchased from CIG Treasury"; shareStr = `+${parseFloat(t.shares_involved)}`;
+            type = "BUY"; details = isClubMaster ? `User #${t.user} Bought` : "Purchased from Treasury"; shareStr = `+${parseFloat(t.shares_involved)}`;
         } else if (t.transaction_type === 'SELL_SHARE') {
-            type = "LIQUIDATE"; details = "Sold back to CIG Treasury"; shareStr = `-${parseFloat(t.shares_involved)}`;
+            type = "LIQUIDATE"; details = isClubMaster ? `User #${t.user} Sold` : "Sold to Treasury"; shareStr = `-${parseFloat(t.shares_involved)}`;
         } else if (t.transaction_type === 'TRANSFER') {
-            if (String(t.user) === String(userId)) {
+            if (!isClubMaster && String(t.user) === String(userId)) {
                 type = "TRANSFER OUT"; details = `Sent to Member #${t.recipient}`; shareStr = `-${parseFloat(t.shares_involved)}`;
-            } else {
+            } else if (!isClubMaster && String(t.recipient) === String(userId)) {
                 type = "TRANSFER IN"; details = `Received from Member #${t.user}`; shareStr = `+${parseFloat(t.shares_involved)}`;
+            } else {
+                type = "TRANSFER"; details = `#${t.user} sent to #${t.recipient}`; shareStr = `${parseFloat(t.shares_involved)}`;
             }
         } else if (t.transaction_type === 'DIVIDEND') {
             type = "DIVIDEND"; details = "Profit Distribution Payout"; shareStr = "-"; 
         }
 
         const valStr = t.amount > 0 ? `K${parseFloat(t.amount).toLocaleString()}` : "N/A";
-        tableRows.push([txDate, txTime, type, details, shareStr, valStr]);
+        const statusStr = t.status || "APPROVED";
+
+        tableRows.push([txDate, type, details, shareStr, valStr, statusStr]);
     });
 
-    // 4. Draw the Table (Using the modern Vite method)
+    // 4. Draw the Table
     autoTable(doc, {
         startY: 65,
         head: [tableColumn],
@@ -257,15 +271,16 @@ function Dashboard() {
     }
 
     // 6. Save File
-    doc.save(`CIG_Statement_ID${userId}_${new Date().toISOString().split('T')[0]}.pdf`);
+    const fileName = isClubMaster ? `CIG_Master_Ledger_${new Date().toISOString().split('T')[0]}.pdf` : `CIG_Statement_ID${userId}_${new Date().toISOString().split('T')[0]}.pdf`;
+    doc.save(fileName);
   }
-  // --- INTERNAL HELPER FUNCTIONS (Instead of Components) ---
+
+  // --- INTERNAL HELPER FUNCTIONS ---
   const renderCIGLogoBanner = () => (
     <div className="mb-8">
       <div className="p-8 rounded-t-2xl bg-primary-deep-navy shadow-inner border-b-4 border-gold-highlight flex flex-col md:flex-row items-start md:items-center justify-between text-light-cream gap-4 relative overflow-hidden">
         <img src={cigLogoWatermark} alt="" className="absolute -top-16 -right-16 w-80 h-80 opacity-[0.03] grayscale invert pointer-events-none" />
         <div className="flex gap-4 items-center relative z-10">
-          {/* NEW: Premium Circular CIG Logo */}
           <div className="w-16 h-16 bg-white rounded-full border-2 border-gold-highlight flex items-center justify-center p-1 shadow-md overflow-hidden">
              <img src={cigLogoWatermark} alt="cig-logo-watermark" className="w-full h-full object-contain rounded-full" />
           </div>
@@ -315,15 +330,25 @@ function Dashboard() {
         Total Owned: <span className="font-extrabold text-gold-highlight text-lg text-shadow-teal-glow">{myTotalShares} Shares</span>
       </p>
       
-      {/* NEW: Download Header */}
+      {/* UPGRADED: Download Header with Master Ledger access for Admin */}
       <div className="flex justify-between items-end border-b border-gray-100 pb-2 mb-4">
         <h5 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Verified Ledger</h5>
-        <button 
-           onClick={generatePDFStatement} 
-           className="text-xs font-bold bg-slate-100 hover:bg-slate-200 text-primary-deep-navy px-3 py-1.5 rounded-md transition flex items-center gap-1 border border-slate-200"
-        >
-          <Download className="w-3.5 h-3.5" /> Download Statement
-        </button>
+        <div className="flex gap-2">
+          {isAdmin && (
+             <button 
+                onClick={() => generatePDFStatement(true)} 
+                className="text-xs font-bold bg-gold-highlight/20 hover:bg-gold-highlight/40 text-primary-deep-navy px-3 py-1.5 rounded-md transition flex items-center gap-1 border border-gold-highlight/30"
+             >
+               <Download className="w-3.5 h-3.5" /> Master Ledger
+             </button>
+          )}
+          <button 
+             onClick={() => generatePDFStatement(false)} 
+             className="text-xs font-bold bg-slate-100 hover:bg-slate-200 text-primary-deep-navy px-3 py-1.5 rounded-md transition flex items-center gap-1 border border-slate-200"
+          >
+            <Download className="w-3.5 h-3.5" /> My Statement
+          </button>
+        </div>
       </div>
 
       <ul className="space-y-3 max-h-60 overflow-y-auto pr-2">
@@ -483,7 +508,7 @@ function Dashboard() {
     </div>
   )
 
-  // --- FINAL RENDER (Calling functions instead of components) ---
+  // --- FINAL RENDER ---
   return (
     <div className="min-h-screen bg-slate-100 p-6 md:p-12 font-sans text-gray-800">
       <Toast message={toastMessage} onClose={() => setToastMessage('')} />
